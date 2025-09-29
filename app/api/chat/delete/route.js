@@ -1,11 +1,12 @@
+import connectDB from "../../../../config/db";
 import Chat from "../../../../models/Chat";
 import { getAuth } from '@clerk/nextjs/server'
 import { NextResponse } from "next/server";
-import connectDB from "../../../../config/db";
 
 export async function POST(req) {
     try {
         const { userId } = getAuth(req)
+        const { chatId } = await req.json()
 
         if (!userId) {
             return NextResponse.json({
@@ -14,13 +15,12 @@ export async function POST(req) {
             })
         }
 
-        const { chatId, name } = await req.json()
-
         // Connect to the database and update the chat name
         await connectDB()
-        await Chat.findOneAndUpdate({ _id: chatId, userId }, { name })
+        await Chat.deleteOne({ _id: chatId, userId })
 
-        return NextResponse.json({ success: true, message: "Chat Renamed" })
+        return NextResponse.json({ success: true, message: "Chat Deleted" })
+
     } catch (error) {
         return NextResponse.json({ success: false, error: error.message })
     }
